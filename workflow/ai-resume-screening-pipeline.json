@@ -1,0 +1,884 @@
+{
+  "name": "AI Resume Screening Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "AI Talent Screening Portal | Job Application",
+        "formDescription": "Please upload your updated resume in PDF format. Our AI screening system will extract and evaluate your technical profile automatically.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Resume / CV (PDF format only)",
+              "fieldType": "file"
+            },
+            {
+              "fieldLabel": "Job Description",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        368
+      ],
+      "id": "82023725-d6fa-46c2-ac06-4d632d1a1516",
+      "name": "On form submission"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "Resume___CV__PDF_format_only_",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        224
+      ],
+      "id": "4b0d984b-48d1-44a7-8628-2f7c9cb6f1a8",
+      "name": "Extract from File",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert HR Data Extraction AI. \nExtract all information from the provided resume text into a clean and valid JSON object strictly matching the structure below.\n\nJSON Structure:\n{\n  \"candidate_name\": \"String\",\n  \"email\": \"String\",\n  \"phone\": \"String\",\n  \"location\": \"String\",\n  \"education\": [\n    {\n      \"degree\": \"String\",\n      \"university\": \"String\",\n      \"graduation_year\": \"String\",\n      \"gpa\": \"String\"\n    }\n  ],\n  \"experience\": [\n    {\n      \"company\": \"String\",\n      \"job_title\": \"String\",\n      \"duration\": \"String\",\n      \"responsibilities\": [\"String\"]\n    }\n  ],\n  \"skills\": {\n    \"programming_languages\": [\"String\"],\n    \"frameworks_and_tools\": [\"String\"],\n    \"databases\": [\"String\"],\n    \"ai_and_automation\": [\"String\"],\n    \"soft_skills\": [\"String\"]\n  },\n  \"projects\": [\n    {\n      \"project_name\": \"String\",\n      \"description\": \"String\",\n      \"technologies\": [\"String\"]\n    }\n  ],\n  \"certifications\": [\n    {\n      \"certification_name\": \"String\",\n      \"organization\": \"String\",\n      \"year\": \"String\"\n    }\n  ]\n}\n\nResume Text:\n{{ $json.text }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        672,
+        -32
+      ],
+      "id": "8fd4be8d-e786-4a67-838c-a67708cecb1a",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        680,
+        200
+      ],
+      "id": "beab0cb6-152b-4e25-aa46-5de09b132a19",
+      "name": "Groq Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"candidate_name\": \"Ahmed Hassan\",\n  \"email\": \"ahmed@example.com\",\n  \"phone\": \"+201000000000\",\n  \"location\": \"Cairo, Egypt\",\n  \"education\": [\n    {\n      \"degree\": \"Bachelor of Science in Computer Science\",\n      \"university\": \"Cairo University\",\n      \"graduation_year\": \"2024\",\n      \"gpa\": \"3.6\"\n    }\n  ],\n  \"experience\": [\n    {\n      \"company\": \"Tech Solutions\",\n      \"job_title\": \"Software Engineer\",\n      \"duration\": \"1 year\",\n      \"responsibilities\": [\"Developed backend APIs\"]\n    }\n  ],\n  \"skills\": {\n    \"programming_languages\": [\"Python\", \"SQL\"],\n    \"frameworks_and_tools\": [\"n8n\", \"Docker\", \"Git\"],\n    \"databases\": [\"PostgreSQL\"],\n    \"ai_and_automation\": [\"OpenAI\", \"LangChain\"],\n    \"soft_skills\": [\"Problem Solving\"]\n  },\n  \"projects\": [\n    {\n      \"project_name\": \"AI Bot\",\n      \"description\": \"Telegram bot for support\",\n      \"technologies\": [\"Python\", \"n8n\"]\n    }\n  ],\n  \"certifications\": [\n    {\n      \"certification_name\": \"Meta Backend Certificate\",\n      \"organization\": \"Coursera\",\n      \"year\": \"2024\"\n    }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        808,
+        200
+      ],
+      "id": "ad4346ac-9cf7-425c-9ad9-4548bab76cac",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert Technical Recruiter AI.\nAnalyze the following Job Description text and extract all requirements into a clean and valid JSON object matching the required schema.\nMake sure to clearly separate strictly required skills from preferred/nice-to-have skills.\n\nJob Description:\n{{ $json['Job Description'] }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        672,
+        672
+      ],
+      "id": "8fa8e05f-30b9-452b-917b-61bcb2023cc4",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        680,
+        888
+      ],
+      "id": "121e916d-855b-47d4-b5e3-7a2093dac0b8",
+      "name": "Groq Chat Model1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"job_title\": \"Junior AI Automation Engineer\",\n  \"min_experience_years\": 1,\n  \"required_education\": \"Bachelor in Computer Science or related field\",\n  \"required_skills\": [\n    \"Python\",\n    \"n8n\",\n    \"REST APIs\",\n    \"SQL\",\n    \"Git\"\n  ],\n  \"preferred_skills\": [\n    \"Docker\",\n    \"OpenAI APIs\",\n    \"LangChain\",\n    \"PostgreSQL\"\n  ],\n  \"responsibilities_keywords\": [\n    \"automation pipelines\",\n    \"backend development\",\n    \"LLM integration\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        808,
+        888
+      ],
+      "id": "d73d05ba-6fbd-4bc1-993b-f87b738f3fe7",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert Senior Technical Recruiter and AI Hiring Specialist.\nYour task is to thoroughly evaluate the Candidate Profile against the Job Requirements.\n\n=== SCORING FORMULA & WEIGHTS ===\n1. Skills Match (40% weight): Compare candidate skills against required and preferred skills.\n2. Experience Relevance (25% weight): Compare candidate work history with required experience years and domain.\n3. Education Match (15% weight): Verify degree requirements.\n4. Projects Relevance (10% weight): Assess relevance of past projects to the target role.\n5. Certifications (10% weight): Evaluate relevant professional certificates.\n\n=== CLASSIFICATION RULES ===\n- 80 - 100: \"Strong Match\" -> Recommendation: \"Proceed to Interview\"\n- 60 - 79:  \"Potential Match\" -> Recommendation: \"Review Manually\"\n- 0 - 59:   \"Weak Match\" -> Recommendation: \"Reject\"\n\n=== INPUT DATA ===\nCandidate Profile (JSON):\n{{ JSON.stringify($('Basic LLM Chain').item.json.output) }}\n\nJob Requirements (JSON):\n{{ JSON.stringify($('Basic LLM Chain1').item.json.output) }}\n\nOutput the evaluation strictly as a valid JSON object matching the schema.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1248,
+        368
+      ],
+      "id": "7734cd52-c427-474e-ab38-259e6199c89f",
+      "name": "Basic LLM Chain2"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1256,
+        600
+      ],
+      "id": "6bf7f75b-5625-4e58-b59e-35e613a887b5",
+      "name": "Groq Chat Model2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"candidate_name\": \"Ahmed Hassan\",\n  \"overall_score\": 88,\n  \"breakdown\": {\n    \"skills_score\": 90,\n    \"experience_score\": 85,\n    \"education_score\": 100,\n    \"projects_score\": 85,\n    \"certifications_score\": 80\n  },\n  \"missing_skills\": [\n    \"Docker\"\n  ],\n  \"matched_skills\": [\n    \"Python\",\n    \"SQL\",\n    \"Git\",\n    \"REST APIs\",\n    \"n8n\",\n    \"OpenAI APIs\"\n  ],\n  \"strengths\": [\n    \"Hands-on experience with n8n and OpenAI integrations\",\n    \"Solid backend development foundation with Python\"\n  ],\n  \"experience_relevance\": \"High\",\n  \"classification\": \"Strong Match\",\n  \"recommendation\": \"Proceed to Interview\",\n  \"summary_reasoning\": \"The candidate has almost all core required skills and very relevant workflow automation experience.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1384,
+        600
+      ],
+      "id": "fd8b220f-4d9c-4bba-9691-dfa0f20aa0fe",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1024,
+        368
+      ],
+      "id": "146cd084-d7a5-413b-9e16-6b4fbb063965",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Candidates Screening",
+          "mode": "name",
+          "cachedResultName": "Candidates Screening"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Candidate Name": "={{ $json.output.candidate_name }}",
+            "Email": "={{ $('Basic LLM Chain').item.json.output.email }}",
+            "Phone": "='{{ $('Basic LLM Chain').item.json.output.phone }}",
+            "Overall Score": "={{ $json.output.overall_score }}",
+            "Classification": "={{ $json.output.classification }}",
+            "Recommendation": "={{ $json.output.recommendation }}",
+            "Missing Skills": "={{ $json.output.missing_skills.join(', ') }}",
+            "Matched Skills": "={{ $json.output.matched_skills.join(', ') }}",
+            "Strengths": "={{ $json.output.strengths.join(' | ') }}",
+            "Timestamp": "={{ $now.format('yyyy-MM-dd HH:mm:ss') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Candidate Name",
+              "displayName": "Candidate Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Overall Score",
+              "displayName": "Overall Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Classification",
+              "displayName": "Classification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Recommendation",
+              "displayName": "Recommendation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Matched Skills",
+              "displayName": "Matched Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Strengths",
+              "displayName": "Strengths",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1600,
+        368
+      ],
+      "id": "2909b775-3803-489a-aa4f-31077fd290df",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Candidates Screening",
+          "mode": "name",
+          "cachedResultName": "Candidates Screening"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1824,
+        272
+      ],
+      "id": "0a30130d-6631-476b-b6c7-ab73f28e995f",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. جلب جميع الصفوف من الشيت\nconst items = $input.all();\n\n// 2. ترتيب جميع المرشحين تنازلياً حسب الـ Score\nconst sortedCandidates = items.map(item => item.json).sort((a, b) => {\n  return Number(b['Overall Score'] || 0) - Number(a['Overall Score'] || 0);\n});\n\n// 3. جلب بيانات المرشح الحالي بأمان\nconst current = $('Basic LLM Chain2').first().json.output || {};\nconst currentEmail = $('Basic LLM Chain').first().json.output?.email || 'N/A';\nconst currentPhone = $('Basic LLM Chain').first().json.output?.phone || 'N/A';\n\nconst matchedSkills = Array.isArray(current.matched_skills) ? current.matched_skills : [];\nconst missingSkills = Array.isArray(current.missing_skills) ? current.missing_skills : [];\nconst currentScore = Number(current.overall_score || 0);\n\n// 4. بناء صفوف جدول الترتيب\nlet rankingRows = '';\nsortedCandidates.forEach((c, index) => {\n  const rowScore = Number(c['Overall Score'] || 0);\n  const badgeColor = rowScore >= 80 ? '#10B981' : (rowScore >= 60 ? '#F59E0B' : '#EF4444');\n  rankingRows += `\n    <tr style=\"border-bottom: 1px solid #E5E7EB;\">\n      <td style=\"padding: 12px; font-weight: bold; text-align: center;\">#${index + 1}</td>\n      <td style=\"padding: 12px;\">${c['Candidate Name'] || 'N/A'}</td>\n      <td style=\"padding: 12px; text-align: center;\"><span style=\"background: ${badgeColor}; color: white; padding: 4px 8px; border-radius: 6px; font-weight: bold;\">${rowScore}%</span></td>\n      <td style=\"padding: 12px;\">${c['Classification'] || 'N/A'}</td>\n      <td style=\"padding: 12px; color: #DC2626;\">${c['Missing Skills'] || 'None'}</td>\n    </tr>\n  `;\n});\n\n// 5. تصميم قالب الإيميل\nconst htmlBody = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <style>\n    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F3F4F6; margin: 0; padding: 20px; color: #1F2937; }\n    .container { max-width: 680px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }\n    .header { background: linear-gradient(135deg, #1E40AF, #3B82F6); color: white; padding: 25px; text-align: center; }\n    .content { padding: 25px; }\n    .card { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 18px; margin-bottom: 25px; }\n    .score-badge { font-size: 24px; font-weight: bold; color: ${currentScore >= 80 ? '#10B981' : '#F59E0B'}; }\n    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }\n    th { background: #F3F4F6; text-align: left; padding: 10px 12px; font-weight: 600; color: #4B5563; }\n    .tag { display: inline-block; background: #EEF2FF; color: #4F46E5; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin: 2px; }\n    .missing-tag { display: inline-block; background: #FEE2E2; color: #DC2626; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin: 2px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h2 style=\"margin:0;\">🎯 AI Resume Screening Alert</h2>\n      <p style=\"margin: 5px 0 0 0; opacity: 0.9;\">Top Match Candidate Detected</p>\n    </div>\n    \n    <div class=\"content\">\n      <h3 style=\"color: #111827; border-bottom: 2px solid #E5E7EB; padding-bottom: 8px;\">👤 Top Candidate Profile</h3>\n      <div class=\"card\">\n        <div style=\"display: flex; justify-content: space-between; align-items: center;\">\n          <div>\n            <h3 style=\"margin: 0 0 5px 0; color: #1E40AF;\">${current.candidate_name || 'N/A'}</h3>\n            <p style=\"margin: 0; font-size: 13px; color: #6B7280;\">📧 ${currentEmail} | 📞 ${currentPhone}</p>\n          </div>\n          <div style=\"text-align: right;\">\n            <div class=\"score-badge\">${currentScore}%</div>\n            <span style=\"font-size: 12px; font-weight: 600; color: #4B5563;\">${current.classification || 'N/A'}</span>\n          </div>\n        </div>\n        <hr style=\"border: 0; border-top: 1px solid #E5E7EB; margin: 15px 0;\">\n        <p style=\"margin: 5px 0;\"><strong>💡 Recommendation:</strong> <span style=\"font-weight: 600; color: #1E40AF;\">${current.recommendation || 'N/A'}</span></p>\n        <p style=\"margin: 5px 0;\"><strong>✅ Matched Skills:</strong> ${matchedSkills.length ? matchedSkills.map(s => `<span class=\"tag\">${s}</span>`).join('') : 'None'}</p>\n        <p style=\"margin: 5px 0;\"><strong>❌ Missing Skills:</strong> ${missingSkills.length ? missingSkills.map(s => `<span class=\"missing-tag\">${s}</span>`).join('') : '<span style=\"color:#10B981;\">None</span>'}</p>\n        <p style=\"margin: 10px 0 0 0; font-size: 13px; color: #4B5563; line-height: 1.5;\"><strong>📝 AI Summary:</strong> ${current.summary_reasoning || 'N/A'}</p>\n      </div>\n\n      <h3 style=\"color: #111827; border-bottom: 2px solid #E5E7EB; padding-bottom: 8px;\">🏆 Current Top Candidates Leaderboard</h3>\n      <table>\n        <thead>\n          <tr>\n            <th style=\"text-align: center;\">Rank</th>\n            <th>Candidate</th>\n            <th style=\"text-align: center;\">Score</th>\n            <th>Match</th>\n            <th>Missing Skills</th>\n          </tr>\n        </thead>\n        <tbody>\n          ${rankingRows}\n        </tbody>\n      </table>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\nreturn [{ json: { htmlBody, candidate_name: current.candidate_name, score: currentScore } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        272
+      ],
+      "id": "352cf37c-902e-494b-a6d1-c10f16b112b9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "=🔥 Top Match Alert: {{ $json.candidate_name }} ({{ $json.score }}%)",
+        "message": "={{ $json.htmlBody }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2496,
+        272
+      ],
+      "id": "4dc15b68-51d6-44b0-b48f-f2ec89ebdcb4",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const candidate = $('Basic LLM Chain2').item.json.output;\nconst candidateEmail = $('Basic LLM Chain').item.json.output.email;\nconst jobTitle = $('Basic LLM Chain1').item.json.output.job_title;\n\nlet feedbackMessage = '';\nif (candidate.overall_score >= 80) {\n  feedbackMessage = `🎉 <strong>Great news!</strong> Your profile shows a strong alignment with the <strong>${jobTitle}</strong> position. Our recruiting team will review your application and contact you soon for next steps.`;\n} else if (candidate.overall_score >= 60) {\n  feedbackMessage = `👍 <strong>Good match!</strong> You have a solid background for the <strong>${jobTitle}</strong> position. Our team is reviewing your profile.`;\n} else {\n  feedbackMessage = `Thank you for applying for the <strong>${jobTitle}</strong> role. While your background is impressive, we found some skill gaps for this specific opening.`;\n}\n\nconst candidateHtml = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <style>\n    body { font-family: Arial, sans-serif; background-color: #F8FAFC; margin: 0; padding: 20px; color: #1E293B; }\n    .container { max-width: 580px; margin: auto; background: #ffffff; border-radius: 12px; border: 1px solid #E2E8F0; padding: 25px; }\n    .header { text-align: center; border-bottom: 1px solid #E2E8F0; padding-bottom: 15px; }\n    .score-circle { display: inline-block; width: 65px; height: 65px; line-height: 65px; border-radius: 50%; background: #EEF2FF; color: #4F46E5; font-size: 20px; font-weight: bold; margin: 15px 0; }\n    .box { background: #F1F5F9; border-radius: 8px; padding: 15px; margin: 15px 0; font-size: 14px; line-height: 1.5; }\n    .tag { display: inline-block; background: #DCFCE7; color: #15803D; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin: 2px; }\n    .missing-tag { display: inline-block; background: #FEF3C7; color: #B45309; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin: 2px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h2 style=\"margin: 0; color: #0F172A;\">Application Received!</h2>\n      <p style=\"margin: 5px 0 0; color: #64748B; font-size: 14px;\">Role: <strong>${jobTitle}</strong></p>\n    </div>\n\n    <p>Hi <strong>${candidate.candidate_name}</strong>,</p>\n    <p>Thank you for submitting your resume! Our AI Screening system has analyzed your profile against the job requirements:</p>\n\n    <div style=\"text-align: center;\">\n      <div class=\"score-circle\">${candidate.overall_score}%</div>\n      <div style=\"font-size: 13px; font-weight: bold; color: #4F46E5;\">Match Alignment</div>\n    </div>\n\n    <div class=\"box\">\n      ${feedbackMessage}\n    </div>\n\n    <h4 style=\"margin: 15px 0 6px 0;\">🌟 Your Matched Skills:</h4>\n    <div>${candidate.matched_skills.map(s => `<span class=\"tag\">✓ ${s}</span>`).join('')}</div>\n\n    ${candidate.missing_skills.length > 0 ? `\n    <h4 style=\"margin: 15px 0 6px 0;\">💡 Recommended Skills to Boost:</h4>\n    <div>${candidate.missing_skills.map(s => `<span class=\"missing-tag\">⚡ ${s}</span>`).join('')}</div>\n    ` : ''}\n\n    <p style=\"margin-top: 20px; font-size: 12px; color: #94A3B8; border-top: 1px solid #E2E8F0; padding-top: 10px;\">\n      Best regards,<br>Talent Acquisition Team\n    </p>\n  </div>\n</body>\n</html>\n`;\n\nreturn [{\n  json: {\n    candidateEmail,\n    candidateName: candidate.candidate_name,\n    jobTitle,\n    candidateHtml\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        464
+      ],
+      "id": "8ca22505-d690-4b11-8f17-ca14e3417f17",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "sendTo": "=YOUR_EMAIL@example.com",
+        "subject": "=Application Status: {{ $json.jobTitle }} Match Result",
+        "message": "={{ $json.candidateHtml }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2048,
+        464
+      ],
+      "id": "5897cc70-b9b2-4c14-a3bb-d49baf45a6c0",
+      "name": "Send a message1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "bf0c094a-186c-4f86-94d6-fbe72928ed1e",
+              "leftValue": "={{ $('Basic LLM Chain2').item.json.output.overall_score }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2272,
+        272
+      ],
+      "id": "901a2986-d4ef-4c1f-af70-2c1395bb4d0b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -256
+      ],
+      "id": "58f1a883-16bb-4cdd-9b77-3b6d955dacc7",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Candidates Screening",
+          "mode": "name",
+          "cachedResultName": "Candidates Screening"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        -256
+      ],
+      "id": "b6cff912-f40e-44f2-acfb-2aaffb8b3da7",
+      "name": "Get row(s) in sheet1"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "=📊 Daily Recruitment Summary: {{ $json.totalCandidates }} Candidates Screened",
+        "message": "={{ $json.digestHtml }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        -256
+      ],
+      "id": "bbe30591-a4a3-4e42-a5fb-01e0c42d5ca3",
+      "name": "Send a message2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// ترتيب المتقدمين من الأعلى تقييماً إلى الأقل\nconst sortedCandidates = items.map(item => item.json).sort((a, b) => {\n  return Number(b['Overall Score'] || 0) - Number(a['Overall Score'] || 0);\n});\n\nlet rankingRows = '';\nsortedCandidates.forEach((c, index) => {\n  const score = Number(c['Overall Score'] || 0);\n  const badgeColor = score >= 80 ? '#10B981' : (score >= 60 ? '#F59E0B' : '#EF4444');\n\n  rankingRows += `\n    <tr style=\"border-bottom: 1px solid #E2E8F0;\">\n      <td style=\"padding: 12px; font-weight: bold; text-align: center;\">#${index + 1}</td>\n      <td style=\"padding: 12px; font-weight: 600; color: #0F172A;\">${c['Candidate Name'] || 'N/A'}</td>\n      <td style=\"padding: 12px; text-align: center;\"><span style=\"background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 13px;\">${score}%</span></td>\n      <td style=\"padding: 12px; color: #334155;\">${c['Classification'] || 'N/A'}</td>\n      <td style=\"padding: 12px; color: #64748B; font-size: 13px;\">${c['Email'] || 'N/A'}</td>\n      <td style=\"padding: 12px; color: #DC2626; font-size: 13px;\">${c['Missing Skills'] || 'None'}</td>\n    </tr>\n  `;\n});\n\nconst digestHtml = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <style>\n    body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #F8FAFC; margin: 0; padding: 25px; color: #1E293B; }\n    .container { max-width: 750px; margin: auto; background: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }\n    .header { text-align: center; border-bottom: 2px solid #F1F5F9; padding-bottom: 20px; margin-bottom: 20px; }\n    table { width: 100%; border-collapse: collapse; margin-top: 15px; }\n    th { background: #F1F5F9; text-align: left; padding: 12px; font-size: 13px; color: #475569; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h2 style=\"margin: 0; color: #0F172A;\">📊 Daily Recruitment Digest</h2>\n      <p style=\"margin: 6px 0 0; color: #64748B; font-size: 14px;\">Ranked Leaderboard of all candidate submissions</p>\n    </div>\n\n    <table>\n      <thead>\n        <tr>\n          <th style=\"text-align: center;\">Rank</th>\n          <th>Candidate</th>\n          <th style=\"text-align: center;\">Score</th>\n          <th>Match Tier</th>\n          <th>Email</th>\n          <th>Missing Skills</th>\n        </tr>\n      </thead>\n      <tbody>\n        ${rankingRows}\n      </tbody>\n    </table>\n\n    <p style=\"margin-top: 25px; font-size: 12px; color: #94A3B8; text-align: center; border-top: 1px solid #E2E8F0; padding-top: 15px;\">\n      Generated automatically by AI Recruitment Engine • All candidates logged in Google Sheets\n    </p>\n  </div>\n</body>\n</html>\n`;\n\nreturn [{ json: { digestHtml, totalCandidates: sortedCandidates.length } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -256
+      ],
+      "id": "0ac92781-b685-4a10-9120-36093b0e3f60",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "⚠️ Unreadable CV Uploaded - Needs Manual Review",
+        "message": "=A candidate submitted a CV that contains no readable text or is a scanned image. Please review the attached file manually",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        368
+      ],
+      "id": "4baf112f-5654-4b06-b79e-99521387f576",
+      "name": "Send a message3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5b88369d-d666-4ff5-97d2-f71a87fb8974",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        224
+      ],
+      "id": "4a11f526-3f67-4c4c-afba-03f5db4ea973",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 1088,
+        "width": 2800
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -96,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "628dc382-07e9-40a6-94d8-6c284730a99c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1376,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "365d43ca-b2f2-46ac-bf16-f7e446cc7d12",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 224,
+        "width": 992,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        -320
+      ],
+      "typeVersion": 1,
+      "id": "6dfb5e30-7bb9-4181-a325-186486967739",
+      "name": "Sticky Note3"
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain2": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "triggerCount": 2,
+  "active": false
+}
